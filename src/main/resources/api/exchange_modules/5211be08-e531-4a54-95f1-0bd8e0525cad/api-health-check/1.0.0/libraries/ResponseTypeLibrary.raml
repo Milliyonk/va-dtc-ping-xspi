@@ -1,0 +1,31 @@
+#%RAML 1.0 Library
+usage: This library provides common response message structure for APIs
+types:
+  HealthStatus:
+    description: Represents dependency status result for Health responses
+    properties:
+      name:
+        description: Logical name of the connection (e.g., system name)
+        type: string
+      status:
+        description: Status of the connection, identifying whether the connection was validated (UP), the connection timed out (DOWN), or the conenction failed for some other reason (ERROR)
+        type: string
+  HealthResponse:
+    description: Represents a standard response structure for API health checks
+    properties:
+      status:
+        description: Describes the overall status of the API, including system connectivity states. When dependency checks are included, the status identifies whether the API is functional (OK), one or more dependencies are down (DEGRADED), or all dependencies are down (OFFLINE)
+        type: string
+      apiName: 
+        description: Name of the API returning the response
+        type: string
+      apiVersion: 
+        description: Version of the API returning the response
+        type: string
+      timestamp:
+        description: Date and Time of the health check
+        type: datetime
+      dependencies?:
+        description: Optional list of connections this API is dependent upon
+        type: HealthStatus[]
+        

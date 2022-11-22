@@ -1,0 +1,13 @@
+#%RAML 1.0 Library
+usage: Provides a collection of common resources, traits and types for use in API specifications
+
+
+uses:
+  ResponseTypes: libraries/ResponseTypeLibrary.raml
+
+traits:
+    HealthResponse: !include traits/HealthResponseTrait.raml
+types:
+  HealthResponse: ResponseTypes.HealthResponse
+
+  

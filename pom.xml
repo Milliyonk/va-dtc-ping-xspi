@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+        <groupId>gov.va.dtc</groupId>
+        <artifactId>va-dtc-ping-xspi</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+
+	<packaging>mule-application</packaging>
+
+	<name>va-dtc-ping-xspi</name>
+
+	<description>This template will be used for all Mulesoft APIs</description>
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+		<app.runtime>4.4.0</app.runtime>
+		<mule.maven.plugin.version>3.5.4</mule.maven.plugin.version>
+		<munit.version>2.3.5</munit.version>
+	</properties>
+
+	<build>
+		<resources>
+			<resource>
+				<directory>${basedir}/src/main/resources</directory>
+				<filtering>true</filtering>
+				<excludes>
+					<exclude>*/*.jks</exclude>
+					<exclude>*/*.p12</exclude>
+				</excludes>
+			</resource>
+			<resource>
+				<directory>${basedir}/src/main/resources</directory>
+				<filtering>false</filtering>
+				<includes>
+					<include>*/*.jks</include>
+					<include>*/*.p12</include>
+				</includes>
+			</resource>
+		</resources>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-clean-plugin</artifactId>
+				<version>3.0.0</version>
+			</plugin>
+			<plugin>
+				<groupId>org.mule.tools.maven</groupId>
+				<artifactId>mule-maven-plugin</artifactId>
+				<version>${mule.maven.plugin.version}</version>
+				<extensions>true</extensions>
+				<configuration>
+					<cloudHubDeployment>
+						<uri>https://gov.anypoint.mulesoft.com</uri>
+						<muleVersion>${app.runtime}</muleVersion>
+						<applicationName>${app.name}</applicationName>
+						<environment>${environment}</environment>
+						<businessGroup>U.S. Department of Veterans Affairs\*SubOrg*</businessGroup>
+						<region>us-gov-west-1</region>
+						<workers>${workers}</workers>
+						<workerType>${worker.type}</workerType>
+						<skipDeploymentVerification>true</skipDeploymentVerification>
+						<connectedAppClientId>${app.client.id}</connectedAppClientId>
+						<connectedAppClientSecret>${app.client.secret}</connectedAppClientSecret>
+						<connectedAppGrantType>client_credentials</connectedAppGrantType>
+						<properties>
+							<mule.env>${MULE_ENV}</mule.env>
+							<secure.key>${SECURE_KEY}</secure.key>
+							<splunk.host>${SPLUNK_HOST}</splunk.host>
+							<splunk.token>${SPLUNK_TOKEN}</splunk.token>
+							<splunk.url>${SPLUNK_URL}</splunk.url>
+							<splunk.source>${SPLUNK_SOURCE}</splunk.source>
+							<splunk.source.type>${SPLUNK_SOURCE_TYPE}</splunk.source.type>
+							<anypoint.platform.client_id>${PLATFORM_CLIENT_ID}</anypoint.platform.client_id>
+							<anypoint.platform.client_secret>${PLATFORM_CLIENT_SECRET}</anypoint.platform.client_secret>
+						</properties>
+					</cloudHubDeployment>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.mulesoft.modules</groupId>
+			<artifactId>mule-secure-configuration-property-module</artifactId>
+			<version>1.2.3</version>
+			<classifier>mule-plugin</classifier>
+		</dependency>
+		<!-- custom connectors -->
+		<!-- splunk dependencies -->
+		<dependency>
+			<groupId>com.splunk.logging</groupId>
+			<artifactId>splunk-library-javalogging</artifactId>
+			<version>1.11.3</version>
+		</dependency>
+		<dependency>
+			<groupId>5211be08-e531-4a54-95f1-0bd8e0525cad</groupId>
+			<artifactId>common-error-handler</artifactId>
+			<version>5.1.1</version>
+			<classifier>mule-plugin</classifier>
+		</dependency>
+		<dependency>
+			<groupId>org.mule.connectors</groupId>
+			<artifactId>mule-http-connector</artifactId>
+			<version>1.7.1</version>
+			<classifier>mule-plugin</classifier>
+		</dependency>
+		<dependency>
+			<groupId>org.mule.modules</groupId>
+			<artifactId>mule-json-module</artifactId>
+			<version>2.1.6</version>
+			<classifier>mule-plugin</classifier>
+		</dependency>
+		<dependency>
+			<groupId>org.mule.connectors</groupId>
+			<artifactId>mule-sockets-connector</artifactId>
+			<version>1.2.3</version>
+			<classifier>mule-plugin</classifier>
+		</dependency>
+		<dependency>
+			<groupId>org.mule.modules</groupId>
+			<artifactId>mule-apikit-module</artifactId>
+			<version>1.7.1</version>
+			<classifier>mule-plugin</classifier>
+		</dependency>
+		<dependency>
+			<groupId>5211be08-e531-4a54-95f1-0bd8e0525cad</groupId>
+			<artifactId>json-logger</artifactId>
+			<version>2.0.4</version>
+			<classifier>mule-plugin</classifier>
+		</dependency>
+	</dependencies>
+	<pluginRepositories>
+		<pluginRepository>
+			<id>mulesoft-releases</id>
+			<name>mulesoft release repository</name>
+			<layout>default</layout>
+			<url>https://repository.mulesoft.org/releases/</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</pluginRepository>
+	</pluginRepositories>
+
+	<repositories>
+		<repository>
+			<id>anypoint-exchange-v2</id>
+			<name>Anypoint Exchange</name>
+			<url>https://maven.anypoint.mulesoft.com/api/v2/maven</url>
+			<layout>default</layout>
+		</repository>
+		<repository>
+			<id>anypoint-exchange-v3</id>
+			<name>Anypoint Exchange</name>
+			<url>https://maven.anypoint.mulesoft.com/api/v3/maven</url>
+			<layout>default</layout>
+		</repository>
+		<repository>
+			<id>us-dept-va-anypoint-exchange-v3</id>
+			<name>Anypoint Exchange V3</name>
+			<url>https://maven.gov.anypoint.mulesoft.com/api/v3/maven</url>
+			<layout>default</layout>
+		</repository>
+	</repositories>
+
+</project>

@@ -1,0 +1,149 @@
+name: Test/Stage build & deploy 
+
+on:
+  workflow_dispatch:
+    # Inputs that the workflow requires in order to deploy to specific GovCloud environment
+    inputs:
+      env:
+        # environment input is case sensitive
+        description: 'Choose env stage or test'
+        default: 'test'
+        required: true
+
+jobs:
+  # build job using mvn command
+  build:
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.env }}
+    steps:
+      # Generate token using Githup App ID and App private key
+      - name: Generate App token
+        id: app-token
+        uses: getsentry/action-github-app-token@v1
+        with:
+          app_id: ${{ secrets.APP_ID }}
+          private_key: ${{ secrets.APP_PRIVATE_KEY }}
+
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Checkeout dtc-cicd-repo to copy settings.xml file to current workspace
+      - name: Checkout private repo
+        uses: actions/checkout@v3
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          repository: department-of-veterans-affairs/dtc-cicd-repo
+          path: dtc-cicd-repo
+
+      # List files in current workspace (not required but good for validation)    
+      - name: List repository files
+        run: |
+          ls ${{ github.workspace }} 
+      
+      - uses: actions/cache@v3
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-key: |
+            ${{ runner.os }}-maven-
+            
+      - name: Setup Java JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: 11
+
+      # Build using maven command by passing the secrets to settings.xml file  
+      - name: Build with Maven
+        env:
+          NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
+          NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
+          PLATFORM_USERNAME: ${{ secrets.PLATFORM_USERNAME }}
+          PLATFORM_PASSWORD: ${{ secrets.PLATFORM_PASSWORD }}
+
+        run: mvn -s dtc-cicd-repo/settings.xml -B -U clean package --file pom.xml -DskipTests
+
+      - name: Artifact file name with commit hash
+        run: |
+          artifactName1=$(ls target/*.jar | head -1)
+          commitHash=$(git rev-parse --short "$GITHUB_SHA")
+          artifactName2=$(ls target/*.jar | head -1 | sed "s/.jar/-$commitHash.jar/g")
+          mv $artifactName1 $artifactName2
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@master
+        with:
+          name: artifacts
+          path: target/*.jar  
+
+  deploy-to-stage:
+    needs: [ build ]
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.env }}
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Generate token using Githup App ID and App private key
+      - name: Generate App token
+        id: app-token
+        uses: getsentry/action-github-app-token@v1
+        with:
+          app_id: ${{ secrets.APP_ID }}
+          private_key: ${{ secrets.APP_PRIVATE_KEY }}
+
+      # Checkeout dtc-cicd-repo to copy settings.xml file to current workspace
+      - name: Checkout private repo
+        uses: actions/checkout@v3
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          repository: department-of-veterans-affairs/dtc-cicd-repo
+          path: dtc-cicd-repo
+
+      - uses: actions/cache@v3
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-key: |
+            ${{ runner.os }}-maven-
+
+      - uses: actions/download-artifact@master
+        with:
+          name: artifacts
+
+      # Deploy using maven command by passing the secrets to settings.xml file, environment will be based on was selected dev or test
+      # must update -Dworkers and -Dworker.type values
+      - name: Deploy with Maven
+        env:
+          APP_NAME : ${{ secrets.APP_NAME }}
+          NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
+          NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
+          PLATFORM_USERNAME: ${{ secrets.PLATFORM_USERNAME }}
+          PLATFORM_PASSWORD: ${{ secrets.PLATFORM_PASSWORD }}
+          CONNECTED_APP_CLIENT_ID: ${{ secrets.CONNECTED_APP_CLIENT_ID }}
+          CONNECTED_APP_CLIENT_SECRET: ${{ secrets.CONNECTED_APP_CLIENT_SECRET }}
+          WORKERS: ${{ secrets.WORKERS }}
+          WORKER_TYPE: ${{ secrets.WORKER_TYPE }}
+          REGION: ${{ secrets.REGION }}
+          MULE_ENV: ${{ secrets.MULE_ENV }}
+          SECURE_KEY: ${{ secrets.SECURE_KEY }}
+          SPLUNK_HOST: ${{ secrets.SPLUNK_HOST }}
+          SPLUNK_TOKEN: ${{ secrets.SPLUNK_TOKEN }}
+          SPLUNK_URL: ${{ secrets.SPLUNK_URL }}
+          SPLUNK_SOURCE: ${{ secrets.SPLUNK_SOURCE }}
+          SPLUNK_SOURCE_TYPE: ${{ secrets.SPLUNK_SOURCE_TYPE }}
+          PLATFORM_CLIENT_ID: ${{ secrets.PLATFORM_CLIENT_ID }}
+          PLATFORM_CLIENT_SECRET: ${{ secrets.PLATFORM_CLIENT_SECRET }}
+
+        run:  |
+          artifactName=$(ls *.jar | head -1)
+          mvn -s dtc-cicd-repo/settings.xml -B deploy -DmuleDeploy \
+          -Dapp.name=$APP_NAME-$MULE_ENV \
+          -Denvironment=$MULE_ENV \
+          -Dregion=$REGION \
+          -Dapp.client.id=$CONNECTED_APP_CLIENT_ID \
+          -Dapp.client.secret=$CONNECTED_APP_CLIENT_SECRET \
+          -Dworkers=$WORKERS \
+          -Dworker.type=$WORKER_TYPE \
+          -DskipMunitTests

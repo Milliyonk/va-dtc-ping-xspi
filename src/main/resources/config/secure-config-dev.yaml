@@ -1,0 +1,17 @@
+#TLS configuration
+tls:
+  listener:
+    keystore:
+      keyPassword: "![YRmXc1vlfo4QdeZpP1+Kpv8D3JWAmcCof6CGyBcE/B2X6/p+i7YsCg==]"
+      password: "![YRmXc1vlfo4QdeZpP1+Kpv8D3JWAmcCof6CGyBcE/B2X6/p+i7YsCg==]"
+  requester:
+    keystore:
+      path: ""
+      keyPassword: "![YRmXc1vlfo4QdeZpP1+Kpv8D3JWAmcCof6CGyBcE/B2X6/p+i7YsCg==]"
+
+#Basic Auth Properties
+  basic:
+    userName: "integration.user@mulesoft.com.leadtrack"
+    password: ""
+    securityToken: ""
+    authorizationUrl: ""

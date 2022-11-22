@@ -1,0 +1,18 @@
+#%RAML 1.0 Library
+usage: This library defines the standard security schemes for APIs.
+
+securitySchemes:
+  clientIdEnforcement:
+    displayName: client-id-secret
+    description: Client ID/Secret Policy Enforcement
+    type: x-custom
+    describedBy:
+      headers:
+        client_id:
+         required: true
+         description: Client ID
+         type: string
+        client_secret:
+         required: true
+         description: Client secret
+         type: string 

@@ -1,0 +1,21 @@
+#%RAML 1.0
+title: API
+description: API template to start build rest apis 
+mediaType:
+  - application/json
+version: v1.0
+
+protocols:
+  - HTTPS
+
+
+uses: 
+  HealthResource: /exchange_modules/5211be08-e531-4a54-95f1-0bd8e0525cad/api-health-check/1.0.0/health.raml
+  SecuritySchemes: /exchange_modules/b49aa36b-e3ec-4a72-a40b-cab73e8a7ef9/standard-security-library/1.0.1/standard-security-library.raml
+  StandardErrors: /exchange_modules/b49aa36b-e3ec-4a72-a40b-cab73e8a7ef9/standard-errors-library/1.0.0/standard-errors-library.raml 
+
+
+/health:
+  description: Test connectivity to this API and back-end resources`
+  get: 
+    is: [ HealthResource.HealthResponse ]
